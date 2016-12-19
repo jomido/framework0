@@ -6,10 +6,10 @@ import {
     getPropByPath } from './utils.js'
 
 import { ComponentType, ComponentInstance } from './component.js'
-import { Types, type } from './types.js'
+import { Type, type } from './type.js'
 
-const EntityType = Types.get('Entity')
-const EntityInstance = Types.get('entity')
+const EntityType = Type('Entity')
+const EntityInstance = Type('entity')
 
 const registry = {}
 
@@ -145,7 +145,10 @@ const BaseStamp = stampit()
 
 const Entity = (name, ...components) => {
 
-    if (name in registry) return registry[name]
+    if (registry[name] !== undefined) {
+        let msg = 'Duplicate Entity name: ' + name
+        throw msg
+    }
 
     let comps = {}
 

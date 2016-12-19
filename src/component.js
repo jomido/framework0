@@ -22,13 +22,13 @@
 // expressed via the type system.
 //
 
-import { Types } from './types.js'
+import { Type } from './type.js'
 import { merge } from './utils.js'
 
 const registry = {}
 
-const ComponentType = Types.get('Component')
-const ComponentInstance = Types.get('component')
+const ComponentType = Type('Component')
+const ComponentInstance = Type('component')
 
 const makeComponentFunction = function (name, state) {
 
@@ -58,7 +58,7 @@ const makeComponentFunction = function (name, state) {
 const Component = (name, state) => {
 
     if (registry[name] !== undefined) {
-        let msg = 'Duplicate component name: ' + name
+        let msg = 'Duplicate Component name: ' + name
         throw msg
     }
 

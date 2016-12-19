@@ -1,4 +1,4 @@
-import { Types } from './types.js'
+import { Type } from './type.js'
 //
 // A composite is a composition of components under a new name. The name is
 // semantically meaningful, as a system can be created specifically for that
@@ -14,6 +14,6 @@ import { Types } from './types.js'
 // a composite is not defined _just_ by its components (and maybe composites),
 // but also by its _name_.
 
-const CompositeType = Types.get('Composite')
+const CompositeType = Type('Composite')
 
 export { CompositeType }

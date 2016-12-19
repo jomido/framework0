@@ -1,18 +1,17 @@
 
-import { Thing } from './thing.js'
-import { Component, isComponent, ComponentType } from './component.js'
-import { position, size, element, container } from './components.js'
-import { Entity } from './entity.js'
-import { merge } from './utils.js'
-import { Types } from './types'
+import { Thing } from './thing'
+import { Component, ComponentType } from './component'
+import { position, size, element, container } from './components'
+import { Entity } from './entity'
+import { merge } from './utils'
+import { Type } from './type'
 
 import stampit from 'stampit'
 
 window.Entity = Entity
-window.Types = Types
+window.Type = Type
 window.Thing = Thing
 window.Component = Component
-window.isComponent = isComponent
 window.ComponentType = ComponentType
 window.element = element
 window.container = container

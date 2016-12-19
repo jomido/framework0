@@ -6,7 +6,7 @@ const typeSymbol = Symbol.for('type')
 const checkType = (o) => o[typeSymbol]
 const setAsType = (o) => {
     o[typeSymbol] = true
-    o[typeSymbol] = typeSymbol
+    o[typeSymbol] = 'type'
 }
 const type = {
     symbol: typeSymbol,
@@ -18,11 +18,14 @@ const registry = {
     type: type
 }
 
-const createType = (name) => {
+const Type = (name) => {
 
     // :name is a string
 
-    if (name in registry) return registry[name]
+    if (registry[name] !== undefined) {
+        let msg = 'Duplicate Type name: ' + name
+        throw msg
+    }
 
     const symbol = Symbol.for(name)
     const check = (o) => o[symbol]
@@ -44,27 +47,25 @@ const createType = (name) => {
 }
 
 
-const Types = {
-    get(o) {
+Type.get = (o) => {
 
-        if (isString(o)) return createType(o)  // memoized
+    if (isString(o)) return registry(o)
 
-        let oType = type.check(o)
+    let oType = type.check(o)
 
-        if (oType) return Types.get(oType)
-    }
+    if (oType) return registry(oType)
 }
 
-export { Types, type }
+export { Type, type }
 
 //
 // type system notes (a.k.a. fun with Symbols)
 //
 // `type.check(<o>)` returns the string name of o's type, if it has one
 //
-// `let SomeType = Types.get('SomeType')` creates a new type called SomeType
+// `let SomeType = Type.get('SomeType')` creates a new type called SomeType
 //
-// `let SomeInstance = Types.get('someType'`) creates a new type that is
+// `let SomeInstance = Type.get('someType'`) creates a new type that is
 // conventially the instance of SomeType.
 //
 // `SomeType.setAs(<o>)` will set the type of o to SomeType. The expression

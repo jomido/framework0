@@ -1,48 +1,22 @@
 const merge = require('deepmerge')
-const getType = {}
+const o = {}
 
-export const isObject = (obj) => obj && getType.toString.call(obj) === '[object Object]'
+const isObject = (obj) => obj && o.toString.call(obj) === '[object Object]'
+const isFunction = (fn) => fn && o.toString.call(fn) === '[object Function]'
+const isArray = (obj) => Object.prototype.toString.call(obj) === '[object Array]'
+const isString = (obj) => ({}).toString.call(obj) === '[object String]'
+const isNumber = (obj) => typeof obj === 'number'
+const isDomElement = (obj) => obj.tagName ? true : false
+const isDomNode = (obj) => obj.nodeName ? true : false
+const isEmpty = (obj) => {
 
-export function isFunction (fn) {
-
-    let getType = {};
-    return fn && getType.toString.call(fn) === '[object Function]';
-};
-
-export function isArray (obj) {
-
-    return Object.prototype.toString.call(obj) === '[object Array]';
-};
-
-export function isString (obj) {
-
-    return ({}).toString.call(obj) === '[object String]';
-};
-
-export function isNumber (obj) {
-
-    return typeof obj === 'number';
-};
-
-export function isElement(obj) {
-
-    return obj.tagName ? 'true' : 'false'
-};
-
-export function isNode(obj) {
-
-    return obj.nodeName ? 'true' : 'false'
-};
-
-export function isEmpty (obj) {
-
-    if (isArray(obj) && obj.length === 0) return true;
-    if (isObject(obj) && Object.keys(obj).length === 0) return true;
-    if (isString(obj) && obj.length === 0) return true;
-    return false;
+    if (isArray(obj) && obj.length === 0) return true
+    if (isObject(obj) && Object.keys(obj).length === 0) return true
+    if (isString(obj) && obj.length === 0) return true
+    return false
 }
 
-export function getPropByPath (o, s) {
+const getPropByPath = (o, s) => {
 
     `
     Given an object literal o, and a string path s, find the value
@@ -69,9 +43,9 @@ export function getPropByPath (o, s) {
         o[s.substring(0, idx)],
         s.substring(idx + 1, s.length)
     )
-};
+}
 
-export function setPropByPath (o, s, v) {
+const setPropByPath = (o, s, v) => {
 
     `
     Given an object literal o, a string path s, and a value v, set
@@ -106,9 +80,9 @@ export function setPropByPath (o, s, v) {
             setPropByPath(o[head], tail, v)
         }
     }
-};
+}
 
-export function deletePropByPath (o, s) {
+const deletePropByPath = (o, s) => {
 
     `
     Given an object literal o and a string path s, delete
@@ -145,7 +119,7 @@ export function deletePropByPath (o, s) {
     }
 }
 
-export function capitalize (str, lowercaseRest=true) {
+const capitalize = (str, lowercaseRest=true) => {
 
     if (lowercaseRest) {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
@@ -155,5 +129,17 @@ export function capitalize (str, lowercaseRest=true) {
 }
 
 export {
-    merge
+    capitalize,
+    deletePropByPath,
+    getPropByPath,
+    isArray,
+    isDomElement,
+    isDomNode,
+    isEmpty,
+    isFunction,
+    isNumber,
+    isObject,
+    isString,
+    merge,
+    setPropByPath
 }
