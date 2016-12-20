@@ -63,9 +63,9 @@ export { Type, type }
 //
 // `type.check(<o>)` returns the string name of o's type, if it has one
 //
-// `let SomeType = Type.get('SomeType')` creates a new type called SomeType
+// `let SomeType = Type('SomeType')` creates a new type called SomeType
 //
-// `let SomeInstance = Type.get('someType'`) creates a new type that is
+// `let SomeInstance = Type('someType'`) creates a new type that is
 // conventially the instance of SomeType.
 //
 // `SomeType.setAs(<o>)` will set the type of o to SomeType. The expression
