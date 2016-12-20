@@ -49,7 +49,7 @@ const Type = (name) => {
 
 Type.get = (o) => {
 
-    if (isString(o)) return registry(o)
+    if (isString(o)) return registry[o]
 
     let oType = type.check(o)
 

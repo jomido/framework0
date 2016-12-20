@@ -102,10 +102,10 @@ const getComponentValues = (entity, paths) => {
         let clone
 
         if (isObject(value)) {
-            clone = Component.get(realPath)(value)()  // merge({}, value, {clone: true})
+            clone = Component.get(realPath)(value)()  // returns a clone
         }
         else if (isArray(value)) {
-            clone = Component.get(realPath)(value)()  // merge([], value, {clone: true})
+            clone = Component.get(realPath)(value)()  // returns a clone
         }
         else {
             clone = value
@@ -126,6 +126,49 @@ const setComponentValues = (entity, definitions) => {
     // the entity
 
     // definitions can be object literals, components, or component instances
+
+    for (let definition of definitions) {
+
+        let instanceType
+        let componentType = ComponentType.check(definition)
+
+        if (!componentType) instanceType = ComponentInstance.check(definition)
+
+        if (componentType) {
+
+            let currentInstance = entity['components'][componentType]
+            let data = Component.toInstance(definition, currentInstance)
+
+            entity['components'][componentType] = data
+
+        }
+        else if (instanceType) {
+
+            let currentInstance = entity['components'][instanceType]
+            let data = Component.toInstance(definition, currentInstance)
+
+            entity['components'][instanceType] = data
+        }
+        else if (isObject(definition)) {
+
+            let currentInstance
+            let data
+
+            for (let componentName in definition) {
+
+                currentInstance = entity['components'][componentName]
+                data = Component.toInstance(
+                    {[componentName]: definition[componentName]},
+                    currentInstance
+                )
+                entity['components'][componentName] = data
+            }
+
+        }
+        else {
+            throw 'Invalid definition to set: ' + definition
+        }
+    }
 }
 
 const api = {

@@ -1,7 +1,6 @@
 //
 // The main export of this module is Component, produces a type of thing I am
-// calling a 'data merge factory'. You create a component (a 'merging
-// object literal') like so:
+// calling a 'data merge factory'. You create a data merging factory like so:
 //
 //    const shazzam = Component('shazzam', {a: 1, b: 2})
 //    const <dmf> = Component(<name>, <state>)
@@ -17,13 +16,18 @@
 //    const shaz1 = shazzam()   // {a: 1, b: 2}
 //    const shaz2 = shazzam2()  // {a: -1, b: 2}
 //
-// Beyond this idea, we are also adding on a loose type system via types.Types.
-// And we are adding the notion of a 'name' to a Component. The name gets
-// expressed via the type system.
+// Beyond this idea, we are also:
 //
+//   * adding on a loose type system via type.Type
+//   * adding the notion of a 'name' to a Component. This name gets expressed
+//     via the type system.
+//
+// This is meant to be the Component part of an Entity Component System (or
+// Component/Entity System, which seems to be interchangeable). But generally,
+// a better name for this pattern is DataClass or DataFactory.
 
 import { Type } from './type.js'
-import { merge } from './utils.js'
+import { merge, isObject } from './utils.js'
 
 const registry = {}
 
@@ -71,5 +75,67 @@ const Component = (name, state) => {
 }
 
 Component.get = (name) => registry[name]
+
+Component.toInstance = (o, current=null) => {
+
+    // maybe support single top-level key object literals here too
+
+    if (current && !isObject(current)) {
+        throw 'Component.toInstance: the "current" arg must be an {}.'
+    }
+
+    let componentType = ComponentType.check(o)
+
+    if (componentType) {
+        return Component.componentToInstance(o, componentType, current)
+    }
+
+    let instanceType = ComponentInstance.check(o)
+
+    if (instanceType) {
+        return Component.instanceToInstance(o, instanceType, current)
+    }
+
+    if (!isObject(o)) {
+        throw 'Invalid argument :o to toInstance: ' + o
+    }
+
+    return Component.literalToInstance(o, current)
+}
+
+Component.componentToInstance = (component, componentType, current=null) => {
+
+    if (!current) return component()
+
+    let instance = component()
+    let data = component(current)(instance)()
+
+    return data
+
+}
+
+Component.instanceToInstance = (instance, instanceType, current=null) => {
+
+    let component = Component.get(instanceType)
+    let data = component(current || {})(instance)()
+
+    return data
+}
+
+Component.literalToInstance = (literal, current) => {
+
+    let keys = Object.keys(literal)
+
+    if (keys.length !== 1) {
+        throw 'Invalid object argument :literal to literalToInstance: ' + o
+    }
+
+    let componentType = keys[0]
+    let component = Component.get(componentType)
+    let instance = literal[componentType]
+    let data = component(current || {})(instance)()
+
+    return data
+}
 
 export { Component, ComponentType, ComponentInstance }
