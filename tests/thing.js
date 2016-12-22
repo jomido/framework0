@@ -1,7 +1,7 @@
 
 import { equals, getKeyHash, getValues } from './utils'
 
-import { position, size } from '../src/components'
+import { position, size } from './components'
 import { Entity } from '../src/entity'
 
 const pos = position({x: 8, y: 8})
@@ -13,7 +13,7 @@ const Thing = Entity(
 
 const tests = {
 
-    'Ways of instantiating an entity instance': function (t) {
+    'Entity Instance instantiation': function (t) {
 
         let defaults = {
             position: position(),
@@ -124,7 +124,7 @@ const tests = {
 
         t.end()
     },
-    'Entity instance api': function (t) {
+    'Entity Instance api': function (t) {
 
         const thing1 = Thing()
 

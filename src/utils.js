@@ -128,9 +128,20 @@ const capitalize = (str, lowercaseRest=true) => {
     return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+const getProp = (o, propName, otherwise=undefined) => {
+
+    try {
+        return p[propName]
+    }
+    catch (e) {
+        return otherwise
+    }
+}
+
 export {
     capitalize,
     deletePropByPath,
+    getProp,
     getPropByPath,
     isArray,
     isDomElement,

@@ -1,12 +1,12 @@
 
 import { equals, notEquals } from './utils'
 
-import { position, size } from '../src/components'
+import { position, size } from './components'
 import { Component, ComponentType, ComponentInstance } from '../src/component'
 
 const tests = {
 
-    'Ways of instantiating a component class': function (t) {
+    'Component Class instantiation': function (t) {
 
         let components = {
             noData: {
@@ -56,6 +56,21 @@ const tests = {
             let { ComponentClass, expected } = components[desc]
             testAttrs(desc, ComponentClass, expected)
         }
+
+        t.end()
+    },
+    'Component lookup': function (t) {
+
+        const foo1 = Component.get('foo1')
+        const foo2 = Component.get('foo2')
+        const nonexistent = Component.get('nonexistent')
+
+        t.ok(foo1 && ComponentType.check(foo1), 'foo1 is a Component')
+        t.ok(foo2 && ComponentType.check(foo1), 'foo2 is a Component')
+        t.ok(
+            !nonexistent && !(ComponentType.check(nonexistent)),
+            'nonexistent is falsey and not a Component'
+        )
 
         t.end()
     },

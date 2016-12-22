@@ -1,12 +1,12 @@
 
-import { equals } from './utils'
+import { equals, notEquals } from './utils'
 
-import { position, size } from '../src/components'
+import { position, size } from './components'
 import { Entity, EntityType, EntityInstance } from '../src/entity'
 
 const tests = {
 
-    'Ways of instantiating an entity class': function (t) {
+    'Entity Class instantiation': function (t) {
 
         let entities = {
             noComponents: {
@@ -65,6 +65,46 @@ const tests = {
             let { EntityClass, expected } = entities[desc]
             testAttrs(desc, EntityClass, expected)
         }
+
+        t.end()
+    },
+    'Entity lookup': function (t) {
+
+        const Foo1 = Entity.get('Foo1')
+        const nonexistent = Entity.get('nonexistent')
+
+        t.ok(Foo1, 'Foo1 is truthy')
+        equals(t,
+            EntityType.check(Foo1),
+            'Foo1',
+            'Foo1 is an Entity Class'
+        )
+
+        t.ok(!nonexistent, 'nonexistent is falsey')
+        equals(t,
+            EntityType.check(nonexistent),
+            false,
+            'nonexistent is an Entity Class'
+        )
+
+        t.end()
+    },
+    'Entity instance check': function (t) {
+
+        const Foo1 = Entity.get('Foo1')
+        const foo1 = Foo1()
+
+        t.ok(foo1, 'foo1 is truthy')
+        equals(t,
+            EntityInstance.check(foo1),
+            'Foo1',
+            'foo1 is an Entity Instance'
+        )
+        notEquals(t,
+            EntityType.check(foo1),
+            'Foo1',
+            'foo1 is not an Entity Class'
+        )
 
         t.end()
     }

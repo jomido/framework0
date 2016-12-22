@@ -1,6 +1,5 @@
 
 import { Component, ComponentType, ComponentInstance } from './component'
-import { position, size, element, container } from './components'
 import { Entity } from './entity'
 import { merge } from './utils'
 import { Type } from './type'
@@ -12,10 +11,6 @@ window.Type = Type
 window.Component = Component
 window.ComponentType = ComponentType
 window.ComponentInstance = ComponentInstance
-window.element = element
-window.container = container
-window.position = position
-window.size = size
 window.stampit = stampit
 window.merge = merge
 

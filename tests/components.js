@@ -1,7 +1,7 @@
 
-import { Component } from './component.js'
+import { Component } from '../src/component.js'
 
-// components
+// components for testing
 const position = Component('position', {x: 0, y: 0})
 const size = Component('size', {w: 10, h: 10})
 const container = Component('container', {children: []})

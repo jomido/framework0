@@ -13,11 +13,13 @@
 // `SomeType.setAs(<o>, token)` will set the type of o to SomeType, with the
 // token `token`. The expression `SomeType.check(<o>)` will return `token`.
 
-import { isString } from './utils.js'
+import { isString, isFunction, isObject } from './utils.js'
+
+const isTypeable = (o) => isFunction(o) || isObject(o)
 
 // bootstrap for 'type' Type
 const typeSymbol = Symbol.for('type')
-const checkType = (o) => o[typeSymbol]
+const checkType = (o) => isTypeable(o) ? o[typeSymbol] : false
 const setAsType = (o) => {
     o[typeSymbol] = 'type'
 }
@@ -41,7 +43,7 @@ const Type = (name) => {
     }
 
     const symbol = Symbol.for(name)
-    const check = (o) => o[symbol]
+    const check = (o) => isTypeable(o) ? o[symbol] : false
     const set = (o, token=null) => {
         o[symbol] = token || true
         o[typeSymbol] = name
