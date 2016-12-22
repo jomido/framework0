@@ -4,15 +4,19 @@
   "description": "experimental framework",
   "main": "./src/index.js",
   "devDependencies": {
+    "babel-cli": "^6.18.0",
     "babel-core": "^6.21.0",
     "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.10",
     "babel-preset-env": "^1.1.4",
     "eslint": "^3.12.2",
+    "tap-browser-color": "^0.1.2",
+    "tape": "^4.6.3",
+    "tape-catch": "^1.0.6",
     "webpack": "^2.2.0-rc.1"
   },
   "scripts": {
-    "test": "test",
+    "test": "node ./node_modules/babel-cli/bin/babel-node ./tests/index.js",
     "lint": "node ./node_modules/eslint/bin/eslint src",
     "build": "node ./node_modules/webpack/bin/webpack --progress --colors",
     "watch": "node ./node_modules/webpack/bin/webpack --watch --progress --colors",

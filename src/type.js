@@ -1,3 +1,17 @@
+// type system notes (a.k.a. fun with Symbols)
+//
+// `type.check(<o>)` returns the string name of o's type, if it has one
+//
+// `let SomeType = Type('SomeType')` creates a new type called SomeType
+//
+// `let SomeInstance = Type('someType'`) creates a new type that is
+// conventially the instance of SomeType.
+//
+// `SomeType.set(<o>)` will set the type of o to SomeType. The expression
+// `SomeType.check(<o>)` will return `true`.
+//
+// `SomeType.setAs(<o>, token)` will set the type of o to SomeType, with the
+// token `token`. The expression `SomeType.check(<o>)` will return `token`.
 
 import { isString } from './utils.js'
 
@@ -5,7 +19,6 @@ import { isString } from './utils.js'
 const typeSymbol = Symbol.for('type')
 const checkType = (o) => o[typeSymbol]
 const setAsType = (o) => {
-    o[typeSymbol] = true
     o[typeSymbol] = 'type'
 }
 const type = {
@@ -24,19 +37,19 @@ const Type = (name) => {
 
     if (registry[name] !== undefined) {
         let msg = 'Duplicate Type name: ' + name
-        throw msg
+        throw Error(msg)
     }
 
     const symbol = Symbol.for(name)
     const check = (o) => o[symbol]
-    const setAs = (o, token=null) => {
+    const set = (o, token=null) => {
         o[symbol] = token || true
         o[typeSymbol] = name
     }
     const typeDefinition = {
         symbol: symbol,
         check: check,
-        set: setAs
+        set: set
     }
 
     type.set(typeDefinition)
@@ -57,19 +70,3 @@ Type.get = (o) => {
 }
 
 export { Type, type }
-
-//
-// type system notes (a.k.a. fun with Symbols)
-//
-// `type.check(<o>)` returns the string name of o's type, if it has one
-//
-// `let SomeType = Type('SomeType')` creates a new type called SomeType
-//
-// `let SomeInstance = Type('someType'`) creates a new type that is
-// conventially the instance of SomeType.
-//
-// `SomeType.setAs(<o>)` will set the type of o to SomeType. The expression
-// `SomeType.check(<o>)` will return `true`.
-//
-// `SomeType.setAs(<o>, token)` will set the type of o to SomeType, with the
-// token `token`. The expression `SomeType.check(<o>)` will return `token`.

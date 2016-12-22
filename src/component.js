@@ -59,7 +59,7 @@ const makeComponentFunction = function (name, state) {
     return ComponentFunction
 }
 
-const Component = (name, state) => {
+const Component = (name, state={}) => {
 
     if (registry[name] !== undefined) {
         let msg = 'Duplicate Component name: ' + name
@@ -87,7 +87,7 @@ Component.toInstance = (o, current=null) => {
     let componentType = ComponentType.check(o)
 
     if (componentType) {
-        return Component.componentToInstance(o, componentType, current)
+        return Component.componentToInstance(o, current)
     }
 
     let instanceType = ComponentInstance.check(o)
@@ -103,7 +103,7 @@ Component.toInstance = (o, current=null) => {
     return Component.literalToInstance(o, current)
 }
 
-Component.componentToInstance = (component, componentType, current=null) => {
+Component.componentToInstance = (component, current=null) => {
 
     if (!current) return component()
 
@@ -114,8 +114,9 @@ Component.componentToInstance = (component, componentType, current=null) => {
 
 }
 
-Component.instanceToInstance = (instance, instanceType, current=null) => {
+Component.instanceToInstance = (instance, instanceType=null, current=null) => {
 
+    instanceType = instanceType || ComponentInstance.check(instance)
     let component = Component.get(instanceType)
     let data = component(current || {})(instance)()
 

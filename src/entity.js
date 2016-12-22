@@ -5,7 +5,7 @@ import {
     merge, isObject, isArray, isString,
     getPropByPath } from './utils.js'
 
-import { ComponentType, ComponentInstance } from './component.js'
+import { Component, ComponentType, ComponentInstance } from './component.js'
 import { Type, type } from './type.js'
 
 const EntityType = Type('Entity')

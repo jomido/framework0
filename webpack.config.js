@@ -1,8 +1,15 @@
 config = {
 
-  entry: './src/index.js',
+  node: {
+    fs: 'empty'
+  },
+
+  entry: {
+    lib: './src/index.js',
+    tests: './tests/index.js'
+  },
   output: {
-    filename: 'bundle.js',
+    filename: '[name].js',
     path: './dist'
 
   },
@@ -11,7 +18,7 @@ config = {
       {test: /\.(js)$/, use: 'babel-loader'}
     ]
   },
-  devtool: 'eval-source-map'
+  devtool: 'cheap-module-eval-source-map'  // 'eval-source-map'
 }
 
 module.exports = config
