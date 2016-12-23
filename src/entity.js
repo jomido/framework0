@@ -2,10 +2,24 @@
 import stampit from 'stampit'
 
 import {
-    merge, isObject, isArray, isString,
-    getPropByPath } from './utils.js'
 
-import { Component, ComponentType, ComponentInstance } from './component.js'
+    merge,
+    isObject,
+    isArray,
+    isString,
+    keyLength,
+    getPropByPath
+
+} from './utils.js'
+
+import {
+
+    Component,
+    ComponentType,
+    ComponentInstance
+
+} from './component.js'
+
 import { Type, type } from './type.js'
 
 const EntityType = Type('Entity')
@@ -71,27 +85,19 @@ const removeComponents = (entity, components) => {
 
 const getComponentValues = (entity, paths) => {
 
-    if (paths.length === 0) {
-
-        // return a "definition"
-        return Entity.definition(entity)
-    }
+    if (paths.length === 0) return Entity.definition(entity)
 
     let values = []
 
     for (let path of paths) {
 
-        let realPath
+        let realPath = isString(path) ? path : (
+            ComponentType.check(path)
+            || ComponentInstance.check(path)
+        )
 
-        let componentType = ComponentType.check(path)
-        if (componentType) realPath = componentType
-
-        if (!realPath) {
-            let instanceType = ComponentInstance.check(path)
-            if (instanceType) realPath = instanceType
-        }
-
-        if (!realPath) realPath = path
+        let pathParts = realPath.split('.')
+        let componentName = pathParts[0]
 
         if (!isString(realPath)) {
             values.push(undefined)
@@ -102,10 +108,21 @@ const getComponentValues = (entity, paths) => {
         let clone
 
         if (isObject(value)) {
-            clone = Component.get(realPath)(value)()  // returns a clone
+            if (pathParts.length === 1)  { // i don't like this
+                clone = Component.get(componentName)(value)()  // returns a clone
+            }
+            else {
+                clone = merge({}, value, {clone: true})
+            }
         }
         else if (isArray(value)) {
-            clone = Component.get(realPath)(value)()  // returns a clone
+            // this probably doesn't work...
+            if (pathParts.length === 1)  { // i don't like this
+                clone = Component.get(componentName)(value)()
+            }
+            else {
+                clone = merge([], value, {clone: true})
+            }
         }
         else {
             clone = value
@@ -121,52 +138,15 @@ const getComponentValues = (entity, paths) => {
 
 const setComponentValues = (entity, definitions) => {
 
-    // maybe clone entire component on setting any value; that way we can
-    // do diffs on components to assert when a system should run against
-    // the entity
-
-    // definitions can be object literals, components, or component instances
+    let componentNames
+    let componentName
 
     for (let definition of definitions) {
 
-        let instanceType
-        let componentType = ComponentType.check(definition)
+        componentNames = setComponent(entity.components, definition, true)
 
-        if (!componentType) instanceType = ComponentInstance.check(definition)
-
-        if (componentType) {
-
-            let currentInstance = entity['components'][componentType]
-            let data = Component.toInstance(definition, currentInstance)
-
-            entity['components'][componentType] = data
-
-        }
-        else if (instanceType) {
-
-            let currentInstance = entity['components'][instanceType]
-            let data = Component.toInstance(definition, currentInstance)
-
-            entity['components'][instanceType] = data
-        }
-        else if (isObject(definition)) {
-
-            let currentInstance
-            let data
-
-            for (let componentName in definition) {
-
-                currentInstance = entity['components'][componentName]
-                data = Component.toInstance(
-                    {[componentName]: definition[componentName]},
-                    currentInstance
-                )
-                entity['components'][componentName] = data
-            }
-
-        }
-        else {
-            throw 'Invalid definition to set: ' + definition
+        for (componentName of componentNames) {
+            entity.components[componentName] = entity.components[componentName]()
         }
     }
 }
@@ -186,53 +166,72 @@ const BaseStamp = stampit()
     .methods(api)
     .init(init)
 
+const setComponent = (o, state, failIfNew=false) => {
+
+    let componentNames = []
+
+    if (type.isPlainObject(state) && keyLength(state) > 1) {
+        for (let componentName in state) {
+            componentNames = setComponent(
+                o,
+                {[componentName]: state[componentName]},
+                failIfNew
+            )
+        }
+
+        return componentNames
+    }
+
+    let component = Component.toComponent(state)
+    let componentName = ComponentType.check(component)
+
+    if (failIfNew && !(componentName in o)) {
+        throw Error('Entity has no component "' + componentName + '"')
+    }
+
+    o[componentName] = component
+
+    componentNames.push(componentName)
+
+    return componentNames
+}
+
 const Entity = (name, ...components) => {
+
+    if (!(isString(name))) {
+        throw Error('Entity first argument must be a string (a name).')
+    }
 
     if (registry[name] !== undefined) {
         let msg = 'Duplicate Entity name: ' + name
-        throw msg
+        throw Error(msg)
     }
 
     let comps = {}
 
     for (let component of components) {
-        let componentName = ComponentType.check(component)
-        comps[componentName] = component
+
+        if (!component) throw Error(
+            'component passed to Entity is bad: ' + component
+        )
+
+        setComponent(comps, component)
     }
 
-    let ComponentStamp = stampit().deepProps({
-        components: comps
-    })
+    let EntityFunction = (...states) => {
 
-    let EntityStamp = stampit(BaseStamp, ComponentStamp)
-
-    let EntityFunction = (...component_states) => {
-
-        // a :component_state is either a component or an object literal
+        // a :state is either a component or an object literal
         // whose keys are component names, and whose values are override
         // data for the corresponding component
 
-        let entity = EntityStamp()
+        let entity = BaseStamp()
+        entity.components = merge({}, comps, {clone: true})
 
-        for (let component_state of component_states) {
-
-            if (isObject(component_state)) {
-                for (let component in component_state) {
-                    let state = component_state[component]
-                    let comp = entity.components[component]
-                    if (!comp) {
-                        throw 'Entity has no component "' + component + '"'
-                    }
-                    entity.components[component] = comp(state)
-                }
-            }
-            else if (type.check(component_state) === 'Component') {
-                let componentName = ComponentType.check(component_state)
-                let comp = entity.components[componentName]
-                entity.components[componentName] = comp(component_state())
-            }
+        for (let state of states) {
+            setComponent(entity.components, state, true)
         }
 
+        // turn all components into instances
         for (let component in entity.components) {
             entity.components[component] = entity.components[component]()
         }

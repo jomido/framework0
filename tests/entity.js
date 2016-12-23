@@ -30,6 +30,18 @@ const tests = {
                     EntityTypeName: 'Foo3'
                 }
             }
+            ,
+            objectLiterals: {
+                EntityClass: Entity(
+                    'Foo4',
+                    {position: {x: 0, y: 0}},
+                    {size: {w: 0, h: 0}}
+                ),
+                expected: {
+                    components: 'position/size',
+                    EntityTypeName: 'Foo4'
+                }
+            }
         }
 
         let testAttrs = (desc, EntityClass, expected) => {

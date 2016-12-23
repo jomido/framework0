@@ -138,9 +138,22 @@ const getProp = (o, propName, otherwise=undefined) => {
     }
 }
 
+const keyLength = (o) => Object.keys(o).length
+
+const getClone = (o) => {
+
+    if (isObject(o)) return merge({}, o, {clone: true})
+    if (isArray(o)) return merge([], o, {clone: true})  // untested
+
+    // TODO: assuming raw value; off the top, could be date though;
+    // maybe other containery types too
+    return o
+}
+
 export {
     capitalize,
     deletePropByPath,
+    getClone,
     getProp,
     getPropByPath,
     isArray,
@@ -151,6 +164,7 @@ export {
     isNumber,
     isObject,
     isString,
+    keyLength,
     merge,
     setPropByPath
 }

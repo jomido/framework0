@@ -27,7 +27,7 @@
 // a better name for this pattern is DataClass or DataFactory.
 
 import { Type } from './type.js'
-import { merge, isObject } from './utils.js'
+import { merge, isObject, isString, getClone } from './utils.js'
 
 const registry = {}
 
@@ -43,6 +43,8 @@ const makeComponentFunction = function (name, state) {
             ComponentInstance.set(c, name)
             return c
         }
+
+        // TODO: validate on recursive keyHash here
 
         return makeComponentFunction(
             name,
@@ -61,6 +63,10 @@ const makeComponentFunction = function (name, state) {
 
 const Component = (name, state={}) => {
 
+    if (!isString(name) || !name) {
+        throw Error('A component must have a name.')
+    }
+
     if (registry[name] !== undefined) {
         let msg = 'Duplicate Component name: ' + name
         throw msg
@@ -76,67 +82,68 @@ const Component = (name, state={}) => {
 
 Component.get = (name) => registry[name]
 
-Component.toInstance = (o, current=null) => {
+Component.toInstance = (o, current=null) => Component.toComponent(o, current)()
+
+Component.toComponent = (o, current=null) => {
 
     // maybe support single top-level key object literals here too
-
-    if (current && !isObject(current)) {
-        throw 'Component.toInstance: the "current" arg must be an {}.'
-    }
 
     let componentType = ComponentType.check(o)
 
     if (componentType) {
-        return Component.componentToInstance(o, current)
+        return Component.componentToComponent(o, current)
     }
 
     let instanceType = ComponentInstance.check(o)
 
     if (instanceType) {
-        return Component.instanceToInstance(o, instanceType, current)
+        return Component.instanceToComponent(o, instanceType, current)
     }
 
     if (!isObject(o)) {
         throw 'Invalid argument :o to toInstance: ' + o
     }
 
-    return Component.literalToInstance(o, current)
+    return Component.literalToComponent(o, current)
 }
 
-Component.componentToInstance = (component, current=null) => {
+Component.componentToComponent = (component, current=null) => {
 
-    if (!current) return component()
+    if (!current) return component
 
     let instance = component()
-    let data = component(current)(instance)()
+    let comp = component(current)(instance)
 
-    return data
+    return comp
 
 }
 
-Component.instanceToInstance = (instance, instanceType=null, current=null) => {
+Component.instanceToComponent = (instance, instanceType=null, current=null) => {
 
     instanceType = instanceType || ComponentInstance.check(instance)
     let component = Component.get(instanceType)
-    let data = component(current || {})(instance)()
+    let comp = component(current || {})(instance)
 
-    return data
+    return comp
 }
 
-Component.literalToInstance = (literal, current) => {
+Component.literalToComponent = (literal, current) => {
 
     let keys = Object.keys(literal)
 
     if (keys.length !== 1) {
-        throw 'Invalid object argument :literal to literalToInstance: ' + o
+        throw Error('Invalid object argument :literal to literalToInstance: ' + keys.join('/'))
     }
 
     let componentType = keys[0]
     let component = Component.get(componentType)
-    let instance = literal[componentType]
-    let data = component(current || {})(instance)()
 
-    return data
+    if (!component) throw Error(`No such component '${componentType}'`)
+
+    let instance = literal[componentType]
+    let comp = component(current || {})(instance)
+
+    return comp
 }
 
 export { Component, ComponentType, ComponentInstance }

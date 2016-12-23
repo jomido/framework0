@@ -1,15 +1,22 @@
 
 import { equals, getKeyHash, getValues } from './utils'
+import { position, size, empty, deep } from './components'
 
-import { position, size } from './components'
+import { isObject, isNumber } from '../src/utils'
 import { Entity } from '../src/entity'
 
-const pos = position({x: 8, y: 8})
+const posOverride = {x: 7, y: 7}
+const pos = position(posOverride)
 const Thing = Entity(
     'Thing',
     pos,
     size
 )
+
+const Empty = Entity('Entity', empty)
+const DeepEntity = Entity('DeepEntity', deep)
+
+let idOffset = null
 
 const tests = {
 
@@ -24,9 +31,10 @@ const tests = {
             noArgs: {
                 thing: Thing(),
                 expected: {
-                    position: {x: 8, y: 8},
+                    position: posOverride,
                     size: defaults.size,
-                    components: 'position/size'
+                    components: 'position/size',
+                    id: 0
                 }
             },
             viaComponent: {
@@ -34,7 +42,8 @@ const tests = {
                 expected: {
                     position: defaults.position,
                     size: defaults.size,
-                    components: 'position/size'
+                    components: 'position/size',
+                    id: 1
                 }
             },
             viaComponents: {
@@ -42,7 +51,8 @@ const tests = {
                 expected: {
                     position: defaults.position,
                     size: defaults.size,
-                    components: 'position/size'
+                    components: 'position/size',
+                    id: 2
                 }
             },
             viaComponentInstance: {
@@ -50,7 +60,8 @@ const tests = {
                 expected: {
                     position: {x: 2, y: 2},
                     size: defaults.size,
-                    components: 'position/size'
+                    components: 'position/size',
+                    id: 3
                 }
             },
             viaComponentInstances: {
@@ -58,7 +69,8 @@ const tests = {
                 expected: {
                     position: {x: 2, y: 2},
                     size: {w: 3, h: 3},
-                    components: 'position/size'
+                    components: 'position/size',
+                    id: 4
                 }
             },
             viaLiteral: {
@@ -66,7 +78,8 @@ const tests = {
                 expected: {
                     position: {x: 2, y: 2},
                     size: defaults.size,
-                    components: 'position/size'
+                    components: 'position/size',
+                    id: 5
                 }
             },
             viaLiterals: {
@@ -74,7 +87,8 @@ const tests = {
                 expected: {
                     position: {x: 2, y: 2},
                     size: {w: 3, h: 3},
-                    components: 'position/size'
+                    components: 'position/size',
+                    id: 6
                 }
             },
             viaBigLiteral: {
@@ -82,17 +96,24 @@ const tests = {
                 expected: {
                     position: {x: 2, y: 2},
                     size: {w: 3, h: 3},
-                    components: 'position/size'
+                    components: 'position/size',
+                    id: 7
                 }
             }
         }
 
         let testAttrs = (desc, thing, expected) => {
 
+            if (idOffset === null) idOffset = thing.id
+
             let c = thing.components
 
             t.ok(thing, `${desc} thing is truthy`)
             t.ok(c, `${desc} components is truthy `)
+            t.ok(
+                thing.id == expected.id + idOffset,
+                `${desc} id is ${expected.id}, but was ${thing.id} `
+            )
             t.ok(
                 getKeyHash(c) === expected.components,
                 `${desc} component list is {${expected.components}}`
@@ -101,7 +122,7 @@ const tests = {
             t.ok(c.size, `${desc} size is truth`)
             t.ok(
                 c.position.x === expected.position.x,
-                `${desc} position.x is ${expected.position.x}`
+                `${desc} position.x is ${expected.position.x}, but was ${c.position.x}`
             )
             t.ok(
                 c.position.y === expected.position.y,
@@ -155,9 +176,68 @@ const tests = {
             n += 1
         }
 
-        thing1.get(position)
-        thing1.get('position')
-        thing1.get('position.x')
+        t.ok(
+            isObject(thing1.get(position)),
+            'instance position is object via get(component)'
+        )
+
+        t.ok(
+            isObject(thing1.get('position')),
+            'instance position is object via get("position")'
+        )
+
+        t.ok(
+            isNumber(thing1.get('position.x')),
+            'instance position.x is number via path lookup'
+        )
+
+        let newData = {x: -7}
+        let newPosition = position(newData)+
+
+        thing1.set(newPosition)
+
+        equals(t,
+            thing1.get('position.x'),
+            -7,
+            'via component set, instance position.x'
+        )
+
+        t.end()
+    },
+    'Entity instance verify empty': function (t) {
+
+        let instance = Empty()
+
+        t.ok(
+            isObject(instance.components.empty),
+            'Empty instance has "empty" object as a component'
+        )
+
+        let hashKey = getKeyHash(instance.components.empty)
+        equals(t,
+            hashKey,
+            '',
+            'Empty instance\'s "empty" object hash key'
+        )
+
+        t.end()
+    },
+    'Entity instance api immutability': function (t) {
+
+        let data = {deep: {a: 4, b: {c: 5, d: [6, 7, 8]}}}
+        let de = DeepEntity(data)
+
+        // t.ok(de.get() !== de.get(), 'subsequent gets are different')
+
+        // let _deep = de.get('deep')
+        // _deep.b.c = -5
+
+        // equals(t,
+        //     t.get(deep).b.c,
+        //     data.deep.b.c,
+        //     'deep.b.c is still the same'
+        // )
+
         t.end()
     }
 }

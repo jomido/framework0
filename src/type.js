@@ -23,10 +23,14 @@ const checkType = (o) => isTypeable(o) ? o[typeSymbol] : false
 const setAsType = (o) => {
     o[typeSymbol] = 'type'
 }
+const isPlainObject = (o) => isObject(o) && !checkType(o)
+
 const type = {
     symbol: typeSymbol,
     check: checkType,
-    set: setAsType
+    set: setAsType,
+    isPlainObject: isPlainObject
+
 }
 
 const registry = {

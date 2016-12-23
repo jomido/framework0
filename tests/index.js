@@ -7,7 +7,7 @@ import { tests as componentTests } from './component'
 import { loud } from './loud-tap'
 
 let api = loud({silenceOks: true})
-let test = require('tape-catch')
+let test = require('tape')
 
 let allTests = [
     typeTests,
