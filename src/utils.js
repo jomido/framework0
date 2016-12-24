@@ -1,6 +1,6 @@
-const merge = require('deepmerge')
-const o = {}
+const _merge = require('deepmerge')
 
+const o = {}
 const isObject = (obj) => obj && o.toString.call(obj) === '[object Object]'
 const isFunction = (fn) => fn && o.toString.call(fn) === '[object Function]'
 const isArray = (obj) => Object.prototype.toString.call(obj) === '[object Array]'
@@ -15,6 +15,26 @@ const isEmpty = (obj) => {
     if (isString(obj) && obj.length === 0) return true
     return false
 }
+
+const isnt = (o) => o === undefined
+
+const ifIsnt = (o, v) => isnt(o) ? v : o
+
+const ensureHas = (o, spec, test=ifIsnt) => {
+
+    for (let prop in spec) o[prop] = test(o[prop], spec[prop])
+
+    return o
+}
+
+const mergeMust = {
+    clone: true,
+    arrayMerge(dest, src, options) { return src.slice() }
+}
+
+const merge = (x, y, opts={}) => _merge(x, y, ensureHas(opts, mergeMust))
+
+merge.all = (els, opts={}) => _merge.all(els, ensureHas(opts, mergeMust))
 
 const getPropByPath = (o, s) => {
 
@@ -150,10 +170,13 @@ const getClone = (o) => {
     return o
 }
 
+const getKeys = (o) => Object.keys(o).sort()
+
 export {
     capitalize,
     deletePropByPath,
     getClone,
+    getKeys,
     getProp,
     getPropByPath,
     isArray,

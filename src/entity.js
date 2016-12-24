@@ -8,7 +8,8 @@ import {
     isArray,
     isString,
     keyLength,
-    getPropByPath
+    getPropByPath,
+    setPropByPath
 
 } from './utils.js'
 
@@ -136,10 +137,31 @@ const getComponentValues = (entity, paths) => {
     return values
 }
 
+const setComponentByString = (entity, pathValue) => {
+
+    if (pathValue.length > 2) throw Error('too many args to set entity component via path string')
+
+    let [path, value] = pathValue
+    let pathParts = path.split('.')
+    let componentName = pathParts[0]
+    let realPath = pathParts.slice(1, pathParts.length).join('.')
+    let instance = Component.get(componentName)()
+
+    setPropByPath(instance, realPath, value)
+
+    entity.set(instance)
+
+    let componentNames = [componentName]
+
+    return componentNames
+}
+
 const setComponentValues = (entity, definitions) => {
 
     let componentNames
     let componentName
+
+    if (isString(definitions[0])) return setComponentByString(entity, definitions)
 
     for (let definition of definitions) {
 
@@ -255,4 +277,8 @@ Entity.definition = (entity) => merge(
 
 Entity.get = (name) => registry[name]
 
-export { Entity, EntityType, EntityInstance }
+const make = (context) => {
+    return { Entity }
+}
+
+export { Entity, EntityType, EntityInstance, make }

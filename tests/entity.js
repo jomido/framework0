@@ -29,8 +29,7 @@ const tests = {
                     components: 'position/size',
                     EntityTypeName: 'Foo3'
                 }
-            }
-            ,
+            },
             objectLiterals: {
                 EntityClass: Entity(
                     'Foo4',
@@ -80,7 +79,7 @@ const tests = {
 
         t.end()
     },
-    'Entity lookup': function (t) {
+    'Entity Class lookup': function (t) {
 
         const Foo1 = Entity.get('Foo1')
         const nonexistent = Entity.get('nonexistent')
@@ -101,7 +100,7 @@ const tests = {
 
         t.end()
     },
-    'Entity instance check': function (t) {
+    'Entity Class class & instance check': function (t) {
 
         const Foo1 = Entity.get('Foo1')
         const foo1 = Foo1()

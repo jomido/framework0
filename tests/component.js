@@ -59,7 +59,7 @@ const tests = {
 
         t.end()
     },
-    'Component lookup': function (t) {
+    'Component Class lookup': function (t) {
 
         const foo1 = Component.get('foo1')
         const foo2 = Component.get('foo2')
@@ -74,7 +74,7 @@ const tests = {
 
         t.end()
     },
-    'Component class accumulation, instancing and immutability': function (t) {
+    'Component Class accumulation, instancing and immutability': function (t) {
 
         const data = {a: 1, b: 2}
         const a = Component('a', data)

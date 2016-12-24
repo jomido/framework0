@@ -1,5 +1,5 @@
 
-import { isArray, isObject } from '../src/utils'
+import { isArray, isObject, isString, getKeys } from '../src/utils'
 
 const equals = (t, a, b, prefix=null) => {
 
@@ -13,6 +13,8 @@ const equals = (t, a, b, prefix=null) => {
     ]
 
     t.ok(result, msg)
+
+    return result
 }
 
 const notEquals = (t, a, b, prefix=null) => {
@@ -29,15 +31,34 @@ const notEquals = (t, a, b, prefix=null) => {
     t.ok(result, msg)
 }
 
-const getKeyHash = (o) => Object.keys(o).sort().join('/')
+const getAllKeys = (o, {maxDepth=0, depth=0}={}) => {
 
-const getValues = (o) => {
+    if (!isObject(o)) return []
+
+    let keys = getKeys(o)
+
+    if (maxDepth === 0 || maxDepth > depth + 1) {
+
+        for (let k of keys) {
+            for (let innerKey of getAllKeys(
+                o[k],
+                { maxDepth, depth: depth + 1},
+            )) keys.push(innerKey)
+        }
+    }
+
+    return keys
+}
+
+const getKeyHash = (o, opts) => getAllKeys(o, opts).join('/')
+
+const getAllValues = (o) => {
 
     let values = []
 
     if (isArray(o)) {
-        for (let arrVal of o.sort()) {
-            for (let innerValue of getValues(arrVal)) values.push(innerValue)
+        for (let arrVal of o) {
+            for (let innerValue of getAllValues(arrVal)) values.push(innerValue)
         }
     }
     else if (isObject(o)) {
@@ -45,8 +66,12 @@ const getValues = (o) => {
         let keys = Object.keys(o).sort()
 
         for (let k of keys) {
-            for (let innerValue of getValues(o[k])) values.push(innerValue)
+            for (let innerValue of getAllValues(o[k])) values.push(innerValue)
         }
+    }
+    else if (isString(o)) {
+
+        values.push('"' + o + '"')
     }
     else {
         values.push(o)
@@ -54,4 +79,7 @@ const getValues = (o) => {
 
     return values
 }
-export { equals, notEquals, getKeyHash, getValues }
+
+const getValueHash = (o) => getAllValues(o).join(',')
+
+export { equals, notEquals, getKeyHash, getValueHash, getAllValues }

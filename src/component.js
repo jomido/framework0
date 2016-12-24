@@ -27,7 +27,7 @@
 // a better name for this pattern is DataClass or DataFactory.
 
 import { Type } from './type.js'
-import { merge, isObject, isString, getClone } from './utils.js'
+import { merge, isObject, isString, getClone, getKeys } from './utils.js'
 
 const registry = {}
 
@@ -81,6 +81,19 @@ const Component = (name, state={}) => {
 }
 
 Component.get = (name) => registry[name]
+
+Component.toName = (o) => {
+
+    let name = ComponentType.check(o) || InstanceType.check(o)
+
+    if (name) return name
+
+    let keys = getKeys(o)
+
+    if (keys.length === 1) return keys[0]
+
+    throw Error('toName did not receive a Component, component, or literal with one key')
+}
 
 Component.toInstance = (o, current=null) => Component.toComponent(o, current)()
 
@@ -146,4 +159,9 @@ Component.literalToComponent = (literal, current) => {
     return comp
 }
 
-export { Component, ComponentType, ComponentInstance }
+const make = (context) => {
+    return { Component }
+}
+
+
+export { Component, ComponentType, ComponentInstance, make }

@@ -1,8 +1,10 @@
 
-import { tests as typeTests, runOnFail } from './type'
-import { tests as thingTests } from './thing'
+import { tests as utilsTests } from './test-utils'
+import { tests as typeTests } from './type'
 import { tests as entityTests } from './entity'
+import { tests as entityInstanceTests } from './entity-instance'
 import { tests as componentTests } from './component'
+import { tests as systemTests, runOnFail } from './system'
 
 import { loud } from './loud-tap'
 
@@ -10,10 +12,12 @@ let api = loud({silenceOks: true})
 let test = require('tape')
 
 let allTests = [
+    utilsTests,
     typeTests,
     entityTests,
     componentTests,
-    thingTests
+    entityInstanceTests,
+    systemTests,
 ]
 
 for (let testGroup of allTests) {

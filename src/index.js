@@ -3,6 +3,8 @@ import { Component, ComponentType, ComponentInstance } from './component'
 import { Entity, EntityType, EntityInstance } from './entity'
 import { merge } from './utils'
 import { Type, type } from './type'
+import { System, SystemType, SystemInstance } from './system'
+import { Universe, UniverseType, UniverseInstance } from './universe'
 
 import stampit from 'stampit'
 
@@ -21,6 +23,10 @@ let globals = () => {
         ComponentType,
         ComponentInstance,
 
+        System,
+        SystemType,
+        SystemInstance,
+
         stampit,
         merge
     }
@@ -36,7 +42,9 @@ let components = (globals) => {
         position: Component('position', {x: 0, y: 0}),
         size: Component('size', {w: 0, h: 0}),
         container: Component('container', {children: []}),
-        flag: Component('flag')
+        element: Component('element', {element: null}),
+        flag: Component('flag'),
+        deep: Component('deep', {a: 1, b: {c: 2, d: [2, 3, 4]}})
     }
 
     return components
@@ -50,7 +58,8 @@ let entities = (globals, components) => {
         Empty: Entity('Empty'),
         JustAFlag:  Entity('JustAFlag', components.flag),
         Thing: Entity('Thing', components.position, components.size),
-        Container: Entity('Container', components.container)
+        Container: Entity('Container', components.container),
+        Thang: Entity('Thang', components.deep)
     }
 
     return entities
@@ -76,10 +85,34 @@ let instances = (globals, components, entities) => {
     const empty = Empty()
     const justAFlag = JustAFlag()
 
+
+
     return { thing, thing2, thingA, empty, justAFlag }
 }
 
-let run = (globals, components, entities, instances) => {
+let systems = (globals, components, entities, instances) => {
+
+    const PositionSystem = System('Position', components.position)
+    const VisualSystem = System(
+        'Visual',
+        components.position,
+        components.size,
+        components.element
+    )
+
+    return { PositionSystem, VisualSystem }
+}
+
+let universe = (namespace=null) => {
+
+    let key = namespace || 'universe'
+
+    return {
+        [key]: Universe(namespace)
+    }
+}
+
+let run = (globals, components, entities, instances, systems, universes) => {
 
     const { position } = components
     const { thing, thing2, thingA, empty, justAFlag } = instances
@@ -114,10 +147,12 @@ const boot = () => {
     const c = components(g)
     const e = entities(g, c)
     const i = instances(g, c, e)
+    const s = systems(g, c, e, i)
+    const u = universe('earth')
 
-    for (let o of [g, c, e, i]) copyToWindow(o)
+    for (let o of [g, c, e, i, s, u]) copyToWindow(o)
 
-    run(g, c, e, i)
+    run(g, c, e, i, s, u)
 }
 
 boot()

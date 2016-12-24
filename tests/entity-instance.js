@@ -1,6 +1,6 @@
 
-import { equals, getKeyHash, getValues } from './utils'
-import { position, size, empty, deep } from './components'
+import { equals, getKeyHash, getAllValues, getValueHash } from './utils'
+import { position, size, empty, deep, arr } from './components'
 
 import { isObject, isNumber } from '../src/utils'
 import { Entity } from '../src/entity'
@@ -15,6 +15,7 @@ const Thing = Entity(
 
 const Empty = Entity('Entity', empty)
 const DeepEntity = Entity('DeepEntity', deep)
+const Ar = Entity('Ar', arr)
 
 let idOffset = null
 
@@ -114,9 +115,10 @@ const tests = {
                 thing.id == expected.id + idOffset,
                 `${desc} id is ${expected.id}, but was ${thing.id} `
             )
-            t.ok(
-                getKeyHash(c) === expected.components,
-                `${desc} component list is {${expected.components}}`
+            equals(t,
+                getKeyHash(c, {maxDepth: 1}),
+                expected.components,
+                `${desc} component hash`
             )
             t.ok(c.position, `${desc} position is truthy `)
             t.ok(c.size, `${desc} size is truth`)
@@ -156,7 +158,7 @@ const tests = {
             size: s
         }
         let definitionKeys = getKeyHash(definition)
-        let definitionValues = getValues(definition)
+        let definitionValues = getAllValues(definition)
 
         let thing1Definition = thing1.get()
 
@@ -166,7 +168,7 @@ const tests = {
             'thing1 definition keys === initial definition keys'
         )
 
-        let thing1Values = getValues(thing1Definition)
+        let thing1Values = getAllValues(thing1Definition)
         let n = 0
 
         for (let v of thing1Values) {
@@ -192,14 +194,45 @@ const tests = {
         )
 
         let newData = {x: -7}
-        let newPosition = position(newData)+
+        let newPosition = position(newData)
 
         thing1.set(newPosition)
 
         equals(t,
             thing1.get('position.x'),
-            -7,
+            newData.x,
             'via component set, instance position.x'
+        )
+
+        newData = {x: -77}
+        newPosition = position(newData)()
+
+        thing1.set(newPosition)
+
+        equals(t,
+            thing1.get('position.x'),
+            newData.x,
+            'via component instance set, instance position.x'
+        )
+
+        newData = {x: 55}
+
+        thing1.set('position.x', newData.x)
+
+        equals(t,
+            thing1.get('position.x'),
+            newData.x,
+            'via path set, instance position.x'
+        )
+
+        newData = {x: 33}
+
+        thing1.set({position: {x: newData.x}})
+
+        equals(t,
+            thing1.get('position.x'),
+            newData.x,
+            'via literal set, instance position.x'
         )
 
         t.end()
@@ -220,23 +253,56 @@ const tests = {
             'Empty instance\'s "empty" object hash key'
         )
 
+        const ar = Ar()
+
+        equals(t,
+            ar.get(arr)[0],
+            1,
+            'arr[0] is 1'
+        )
         t.end()
     },
     'Entity instance api immutability': function (t) {
 
+        // TODO: deep components do not work at all, apparently... :)
         let data = {deep: {a: 4, b: {c: 5, d: [6, 7, 8]}}}
         let de = DeepEntity(data)
 
-        // t.ok(de.get() !== de.get(), 'subsequent gets are different')
+        t.ok(de.get() !== de.get(), 'subsequent gets are different')
 
-        // let _deep = de.get('deep')
-        // _deep.b.c = -5
+        let _deep = de.get('deep')
+        let newBC = -5
+        _deep.b.c = newBC
 
-        // equals(t,
-        //     t.get(deep).b.c,
-        //     data.deep.b.c,
-        //     'deep.b.c is still the same'
-        // )
+        equals(t,
+            de.get(deep).b.c,
+            data.deep.b.c,
+            'deep.b.c is still the same'
+        )
+
+        let newBC2 = 1000
+        de.set('deep.b.c', newBC2)
+
+        equals(t,
+            _deep.b.c,
+            newBC,
+            '_deep.b.c is still the same'
+        )
+
+        equals(t,
+            de.get(deep).b.c,
+            newBC2,
+            '_deep.b.c is still the same'
+        )
+
+        let newBD = [1, 2, 3]
+        de.set('deep.b.d', newBD)
+
+        equals(t,
+            getValueHash(_deep.b.d),
+            getValueHash(data.deep.b.d),
+            '_deep.b.d is still the same'
+        )
 
         t.end()
     }
