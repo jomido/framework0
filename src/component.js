@@ -26,10 +26,21 @@
 // Component/Entity System, which seems to be interchangeable). But generally,
 // a better name for this pattern is DataClass or DataFactory.
 
-import { Type } from './type.js'
-import { merge, isObject, isString, getClone, getKeys } from './utils.js'
+import { Events } from './events'
+import { Type } from './type'
+import { Registry } from './registry'
+import {
+    merge,
+    isObject,
+    isString,
+    getClone,
+    getKeys,
+    getValues,
+    getIterator
+} from './utils'
 
-const registry = {}
+const registry = Registry()
+const events = Events()
 
 const ComponentType = Type('Component')
 const ComponentInstance = Type('component')
@@ -61,107 +72,108 @@ const makeComponentFunction = function (name, state) {
     return ComponentFunction
 }
 
-const Component = (name, state={}) => {
-
-    if (!isString(name) || !name) {
-        throw Error('A component must have a name.')
-    }
-
-    if (registry[name] !== undefined) {
-        let msg = 'Duplicate Component name: ' + name
-        throw msg
-    }
-
-    let ComponentFunction = makeComponentFunction(name, state)
-
-    registry[name] = ComponentFunction
-
-    return ComponentFunction
-
-}
-
-Component.get = (name) => registry[name]
-
-Component.toName = (o) => {
-
-    let name = ComponentType.check(o) || InstanceType.check(o)
-
-    if (name) return name
-
-    let keys = getKeys(o)
-
-    if (keys.length === 1) return keys[0]
-
-    throw Error('toName did not receive a Component, component, or literal with one key')
-}
-
-Component.toInstance = (o, current=null) => Component.toComponent(o, current)()
-
-Component.toComponent = (o, current=null) => {
-
-    // maybe support single top-level key object literals here too
-
-    let componentType = ComponentType.check(o)
-
-    if (componentType) {
-        return Component.componentToComponent(o, current)
-    }
-
-    let instanceType = ComponentInstance.check(o)
-
-    if (instanceType) {
-        return Component.instanceToComponent(o, instanceType, current)
-    }
-
-    if (!isObject(o)) {
-        throw 'Invalid argument :o to toInstance: ' + o
-    }
-
-    return Component.literalToComponent(o, current)
-}
-
-Component.componentToComponent = (component, current=null) => {
-
-    if (!current) return component
-
-    let instance = component()
-    let comp = component(current)(instance)
-
-    return comp
-
-}
-
-Component.instanceToComponent = (instance, instanceType=null, current=null) => {
-
-    instanceType = instanceType || ComponentInstance.check(instance)
-    let component = Component.get(instanceType)
-    let comp = component(current || {})(instance)
-
-    return comp
-}
-
-Component.literalToComponent = (literal, current) => {
-
-    let keys = Object.keys(literal)
-
-    if (keys.length !== 1) {
-        throw Error('Invalid object argument :literal to literalToInstance: ' + keys.join('/'))
-    }
-
-    let componentType = keys[0]
-    let component = Component.get(componentType)
-
-    if (!component) throw Error(`No such component '${componentType}'`)
-
-    let instance = literal[componentType]
-    let comp = component(current || {})(instance)
-
-    return comp
-}
-
 const make = (context) => {
-    return { Component }
+
+    const Component = (name, state={}) => {
+
+        if (!isString(name) || !name) {
+            throw Error('A component must have a name.')
+        }
+
+        if (context.registry[name] !== undefined) {
+            let msg = 'Duplicate Component name: ' + name
+            throw Error(msg)
+        }
+
+        let ComponentFunction = makeComponentFunction(name, state)
+
+        context.registry[name] = ComponentFunction
+
+        return ComponentFunction
+    }
+
+    Component[Symbol.iterator] = getIterator(() => getValues(context.registry))
+
+    Component.get = (name) => context.registry[name]
+
+    Component.toName = (o) => {
+
+        let name = ComponentType.check(o) || InstanceType.check(o)
+
+        if (name) return name
+
+        let keys = getKeys(o)
+
+        if (keys.length === 1) return keys[0]
+
+        throw Error('toName did not receive a Component, component, or literal with one key')
+    }
+
+    Component.toInstance = (o, current=null) => Component.toComponent(o, current)()
+
+    Component.toComponent = (o, current=null) => {
+
+        let componentType = ComponentType.check(o)
+
+        if (componentType) {
+            return Component.componentToComponent(o, current)
+        }
+
+        let instanceType = ComponentInstance.check(o)
+
+        if (instanceType) {
+            return Component.instanceToComponent(o, instanceType, current)
+        }
+
+        if (!isObject(o)) {
+            throw 'Invalid argument :o to toInstance: ' + o
+        }
+
+        return Component.literalToComponent(o, current)
+    }
+
+    Component.componentToComponent = (component, current=null) => {
+
+        if (!current) return component
+
+        let instance = component()
+        let comp = component(current)(instance)
+
+        return comp
+
+    }
+
+    Component.instanceToComponent = (instance, instanceType=null, current=null) => {
+
+        instanceType = instanceType || ComponentInstance.check(instance)
+        let component = Component.get(instanceType)
+        let comp = component(current || {})(instance)
+
+        return comp
+    }
+
+    Component.literalToComponent = (literal, current) => {
+
+        let keys = Object.keys(literal)
+
+        if (keys.length !== 1) {
+            throw Error('Invalid object argument :literal to literalToInstance: ' + keys.join('/'))
+        }
+
+        let componentType = keys[0]
+        let component = Component.get(componentType)
+
+        if (!component) throw Error(`No such component '${componentType}'`)
+
+        let instance = literal[componentType]
+        let comp = component(current || {})(instance)
+
+        return comp
+    }
+
+    return Component
 }
 
+const Component = make({registry, events})
 
 export { Component, ComponentType, ComponentInstance, make }

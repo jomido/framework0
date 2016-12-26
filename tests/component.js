@@ -48,7 +48,7 @@ const tests = {
                 t,
                 Object.keys(instance).sort().join('/'),
                 expected.keys,
-                `{desc} component keys check`
+                `${desc} component keys check`
             )
         }
 
@@ -56,6 +56,29 @@ const tests = {
             let { ComponentClass, expected } = components[desc]
             testAttrs(desc, ComponentClass, expected)
         }
+
+        t.end()
+    },
+    'Component class is in registry': function (t) {
+
+        const foo1 = Component.get('foo1')
+        equals(t,
+            ComponentType.check(foo1),
+            'foo1',
+            'foo1 is in registry'
+        )
+
+        t.end()
+    },
+    'Component Class cannot create two with same name': function (t) {
+
+        const bar1 = Component('bar1')
+
+        t.throws(
+            () => Component('bar1'),
+            /Duplicate Component name/,
+            'Should not be able to create two "bar1" components'
+        )
 
         t.end()
     },

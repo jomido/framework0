@@ -5,6 +5,7 @@ import { tests as entityTests } from './entity'
 import { tests as entityInstanceTests } from './entity-instance'
 import { tests as componentTests } from './component'
 import { tests as systemTests, runOnFail } from './system'
+import { tests as universeTests } from './universe'
 
 import { loud } from './loud-tap'
 
@@ -18,6 +19,7 @@ let allTests = [
     componentTests,
     entityInstanceTests,
     systemTests,
+    universeTests
 ]
 
 for (let testGroup of allTests) {

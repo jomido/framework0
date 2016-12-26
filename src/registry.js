@@ -1,4 +1,6 @@
 
-const Registry = () => {}
+const Registry = () => {
+    return {}
+}
 
 export { Registry }

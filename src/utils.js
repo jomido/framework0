@@ -172,13 +172,43 @@ const getClone = (o) => {
 
 const getKeys = (o) => Object.keys(o).sort()
 
+const getValues = (o) => {
+
+    let keys = getKeys(o)
+    let values = []
+
+    for (let k of keys) values.push(o[k])
+
+    return values
+}
+
+const getIterator = (getIterableFn) => {
+
+    return () => {
+
+        let iterable = getIterableFn()
+        let length = iterable.length
+        let idx = 0
+
+        return {
+            next() {
+                return idx < length ?
+                    {value: iterable[idx++], done: false} :
+                    {done: true}
+            }
+        }
+    }
+}
+
 export {
     capitalize,
     deletePropByPath,
     getClone,
+    getIterator,
     getKeys,
     getProp,
     getPropByPath,
+    getValues,
     isArray,
     isDomElement,
     isDomNode,

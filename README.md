@@ -16,3 +16,8 @@ Goals:
  4. decomposable[1]
 
 [1] Might be the wrong term; but the ability to easily take a thing and break it apart into smaller pieces. Or, the way things _must_ be formed makes _unforming_ easy. 
+
+Notes:
+
+ 1. consider tcomb instead of typing via symbols
+ 2. for perf, consider mori instead of merge-deep
